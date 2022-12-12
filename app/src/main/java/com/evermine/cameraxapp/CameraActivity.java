@@ -31,7 +31,6 @@ public class CameraActivity extends AppCompatActivity {
         setContentView(R.layout.activity_camera);
         previewView = findViewById(R.id.previewView);
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-        textView = findViewById(R.id.orientation);
         cameraProviderFuture.addListener(new Runnable() {
             @Override
             public void run() {
@@ -56,13 +55,8 @@ public class CameraActivity extends AppCompatActivity {
                 image.close();
             }
         });
-        OrientationEventListener orientationEventListener = new OrientationEventListener(this) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                textView.setText(Integer.toString(orientation));
-            }
-        };
-        orientationEventListener.enable();
+
+
         Preview preview = new Preview.Builder().build();
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
