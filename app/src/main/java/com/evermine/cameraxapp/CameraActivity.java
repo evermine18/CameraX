@@ -3,6 +3,7 @@ package com.evermine.cameraxapp;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
@@ -39,6 +40,7 @@ public class CameraActivity extends AppCompatActivity {
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView;
     private Executor executor = Executors.newSingleThreadExecutor();
+    private ImageCapture imageCapture;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,34 +49,12 @@ public class CameraActivity extends AppCompatActivity {
         previewView = findViewById(R.id.previewView);
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         Button takePicture = findViewById(R.id.button2);
-        ImageCapture.Builder builder = new ImageCapture.Builder();
-        final ImageCapture imageCapture = builder
-                .setTargetRotation(this.getWindowManager().getDefaultDisplay().getRotation())
-                .build();
+        //Declaring ImageCapture
+
         takePicture.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View view) {
-               SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
-               File file = new File(getFilesDir(), mDateFormat.format(new Date()) + ".jpg");
-
-               ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
-               imageCapture.takePicture(outputFileOptions, ContextCompat.getMainExecutor(getApplicationContext()), new ImageCapture.OnImageSavedCallback() {
-                   @Override
-                   public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                       new Handler().post(new Runnable() {
-                           @Override
-                           public void run() {
-                               Toast.makeText(CameraActivity.this, "Image Saved successfully", Toast.LENGTH_SHORT).show();
-                           }
-                       });
-                   }
-
-                   @Override
-                   public void onError(@NonNull ImageCaptureException error) {
-                       error.printStackTrace();
-                   }
-
-               });
+                takePicture();
            }
 
            ;
@@ -110,7 +90,36 @@ public class CameraActivity extends AppCompatActivity {
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
-        cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,
-                imageAnalysis, preview);
+        ImageCapture.Builder builder = new ImageCapture.Builder();
+        imageCapture = builder
+                .setTargetRotation(this.getWindowManager().getDefaultDisplay().getRotation())
+                .build();
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,preview, imageAnalysis, imageCapture);
+        //cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector,
+        //        imageAnalysis, preview);
+    }
+    public void takePicture(){
+        SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
+        File file = new File(getFilesDir(), mDateFormat.format(new Date()) + ".jpg");
+
+        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
+        Executor executor = ContextCompat.getMainExecutor(this);
+        imageCapture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback() {
+            @Override
+            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+                new Handler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(CameraActivity.this, "Image Saved successfully", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(@NonNull ImageCaptureException error) {
+                error.printStackTrace();
+            }
+
+        });
     }
 }
