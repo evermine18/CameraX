@@ -13,8 +13,10 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.LifecycleOwner;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -111,6 +113,8 @@ public class CameraActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(CameraActivity.this, "Image Saved successfully", Toast.LENGTH_SHORT).show();
+                        MainActivity.getInstance().imageView.setImageURI(Uri.parse(file.toString()));
+                        finish();
                     }
                 });
             }
